@@ -8,7 +8,9 @@ services:
   promtail:
     image: grafana/promtail:latest
     volumes:
-      - /var/log:/var/log
+      - /var/log:/var/log:ro
+      - /Users/narumi/.log:/app/log:ro
+      - /opt/homebrew/var/log:/brew/log:ro
       - ./promtail.yaml:/etc/promtail/config.yml
     command: -config.file=/etc/promtail/config.yml
 

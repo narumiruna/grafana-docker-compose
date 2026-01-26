@@ -15,5 +15,18 @@ scrape_configs:
       - localhost
     labels:
       job: varlogs
-      __path__: /var/log/*log
-      stream: stdout
+      __path__: /var/log/*.log
+- job_name: app
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      job: applogs
+      __path__: /app/log/*.log
+- job_name: brew
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      job: brewlogs
+      __path__: /brew/log/*.log
