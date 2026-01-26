@@ -1,12 +1,14 @@
 services:
   loki:
     image: grafana/loki:latest
+    restart: unless-stopped
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
 
   promtail:
     image: grafana/promtail:latest
+    restart: unless-stopped
     volumes:
       - /var/log:/var/log:ro
       - /Users/narumi/.log:/app/log:ro
@@ -17,10 +19,10 @@ services:
   # tempo, backend and kafka
   tempo:
     image: grafana/tempo:latest
+    restart: always
     depends_on:
       - redpanda
     command: "-target=all -config.file=/etc/tempo.yaml"
-    restart: always
     volumes:
       - ./tempo.yaml:/etc/tempo.yaml
       - tempo-data:/var/tempo
@@ -33,6 +35,7 @@ services:
 
   minio:
     image: minio/minio:latest
+    restart: unless-stopped
     environment:
       - MINIO_ACCESS_KEY=tempo
       - MINIO_SECRET_KEY=supersecret
@@ -45,6 +48,7 @@ services:
 
   redpanda:
     image: redpandadata/redpanda:latest
+    restart: unless-stopped
     ports:
       - "9092:9092" # Kafka API for clients
     command: >
@@ -55,6 +59,7 @@ services:
 
   redpanda-console:
     image: docker.redpanda.com/redpandadata/console:latest
+    restart: unless-stopped
     environment:
       - CONFIG_FILEPATH=/etc/redpanda/redpanda-console-config.yaml
     volumes:
@@ -76,6 +81,7 @@ services:
 
   alloy:
     image: grafana/alloy:latest
+    restart: unless-stopped
     volumes:
       - ./config.alloy:/etc/alloy/config.alloy
     command:
@@ -94,6 +100,7 @@ services:
   # supporting services - metrics, visualization and testing
   prometheus:
     image: prom/prometheus:latest
+    restart: unless-stopped
     command:
       - --config.file=/etc/prometheus.yaml
       - --web.enable-remote-write-receiver
@@ -106,6 +113,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
+    restart: unless-stopped
     volumes:
       - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
       - grafana-data:/var/lib/grafana
