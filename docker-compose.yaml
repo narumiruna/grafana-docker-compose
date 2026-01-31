@@ -17,99 +17,99 @@ services:
     command: -config.file=/etc/promtail/config.yml
 
   # tempo, backend and kafka
-  tempo:
-    image: grafana/tempo:latest
-    restart: always
-    depends_on:
-      - redpanda
-    command: "-target=all -config.file=/etc/tempo.yaml"
-    volumes:
-      - ./tempo.yaml:/etc/tempo.yaml
-      - tempo-data:/var/tempo
-    ports:
-      - "3200:3200" # tempo
-      - "4317:4317" # Tempo OTLP GRPC
-      - "4318:4318" # Tempo OTLP HTTP
-    environment:
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
+  # tempo:
+  #   image: grafana/tempo:latest
+  #   restart: always
+  #   depends_on:
+  #     - redpanda
+  #   command: "-target=all -config.file=/etc/tempo.yaml"
+  #   volumes:
+  #     - ./tempo.yaml:/etc/tempo.yaml
+  #     - tempo-data:/var/tempo
+  #   ports:
+  #     - "3200:3200" # tempo
+  #     - "4317:4317" # Tempo OTLP GRPC
+  #     - "4318:4318" # Tempo OTLP HTTP
+  #   environment:
+  #     - OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318
 
-  minio:
-    image: minio/minio:latest
-    restart: unless-stopped
-    environment:
-      - MINIO_ACCESS_KEY=tempo
-      - MINIO_SECRET_KEY=supersecret
-    ports:
-      - "9001:9001"
-    entrypoint:
-      - sh
-      - -euc
-      - mkdir -p /data/tempo && minio server /data --console-address ':9001'
+  # minio:
+  #   image: minio/minio:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     - MINIO_ACCESS_KEY=tempo
+  #     - MINIO_SECRET_KEY=supersecret
+  #   ports:
+  #     - "9001:9001"
+  #   entrypoint:
+  #     - sh
+  #     - -euc
+  #     - mkdir -p /data/tempo && minio server /data --console-address ':9001'
 
-  redpanda:
-    image: redpandadata/redpanda:latest
-    restart: unless-stopped
-    ports:
-      - "9092:9092" # Kafka API for clients
-    command: >
-      redpanda start --overprovisioned
-      --mode=dev-container
-      --kafka-addr=PLAINTEXT://0.0.0.0:9092
-      --advertise-kafka-addr=PLAINTEXT://redpanda:9092
+  # redpanda:
+  #   image: redpandadata/redpanda:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - "9092:9092" # Kafka API for clients
+  #   command: >
+  #     redpanda start --overprovisioned
+  #     --mode=dev-container
+  #     --kafka-addr=PLAINTEXT://0.0.0.0:9092
+  #     --advertise-kafka-addr=PLAINTEXT://redpanda:9092
 
-  redpanda-console:
-    image: docker.redpanda.com/redpandadata/console:latest
-    restart: unless-stopped
-    environment:
-      - CONFIG_FILEPATH=/etc/redpanda/redpanda-console-config.yaml
-    volumes:
-      - ./redpanda-console.yaml:/etc/redpanda/redpanda-console-config.yaml
-    ports:
-      - "8080:8080"
-    depends_on:
-      - redpanda
+  # redpanda-console:
+  #   image: docker.redpanda.com/redpandadata/console:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     - CONFIG_FILEPATH=/etc/redpanda/redpanda-console-config.yaml
+  #   volumes:
+  #     - ./redpanda-console.yaml:/etc/redpanda/redpanda-console-config.yaml
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - redpanda
 
   # ingest pipeline
-  k6-tracing:
-    image: ghcr.io/grafana/xk6-client-tracing:latest
-    environment:
-      - ENDPOINT=alloy:4317
-    restart: always
-    depends_on:
-      - tempo
-      - alloy
+  # k6-tracing:
+  #   image: ghcr.io/grafana/xk6-client-tracing:latest
+  #   environment:
+  #     - ENDPOINT=alloy:4317
+  #   restart: always
+  #   depends_on:
+  #     - tempo
+  #     - alloy
 
-  alloy:
-    image: grafana/alloy:latest
-    restart: unless-stopped
-    volumes:
-      - ./config.alloy:/etc/alloy/config.alloy
-    command:
-      - run
-      - /etc/alloy/config.alloy
-      - --storage.path=/var/lib/alloy/data
-      - --server.http.listen-addr=0.0.0.0:12345
-    environment:
-      - ALLOY_OTLP_UPSTREAM=tempo:4317
-    ports:
-      - "12345:12345"
-      - "4319:4317"
-    depends_on:
-      - tempo
+  # alloy:
+  #   image: grafana/alloy:latest
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./config.alloy:/etc/alloy/config.alloy
+  #   command:
+  #     - run
+  #     - /etc/alloy/config.alloy
+  #     - --storage.path=/var/lib/alloy/data
+  #     - --server.http.listen-addr=0.0.0.0:12345
+  #   environment:
+  #     - ALLOY_OTLP_UPSTREAM=tempo:4317
+  #   ports:
+  #     - "12345:12345"
+  #     - "4319:4317"
+  #   depends_on:
+  #     - tempo
 
   # supporting services - metrics, visualization and testing
-  prometheus:
-    image: prom/prometheus:latest
-    restart: unless-stopped
-    command:
-      - --config.file=/etc/prometheus.yaml
-      - --web.enable-remote-write-receiver
-      - --enable-feature=exemplar-storage
-      - --enable-feature=native-histograms
-    volumes:
-      - ./prometheus.yaml:/etc/prometheus.yaml
-    ports:
-      - "9090:9090"
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   restart: unless-stopped
+  #   command:
+  #     - --config.file=/etc/prometheus.yaml
+  #     - --web.enable-remote-write-receiver
+  #     - --enable-feature=exemplar-storage
+  #     - --enable-feature=native-histograms
+  #   volumes:
+  #     - ./prometheus.yaml:/etc/prometheus.yaml
+  #   ports:
+  #     - "9090:9090"
 
   grafana:
     image: grafana/grafana:latest
@@ -126,18 +126,18 @@ services:
     ports:
       - "3000:3000"
 
-  vulture:
-    image: grafana/tempo-vulture:latest
-    restart: always
-    command:
-      [
-        "-prometheus-listen-address=:8080",
-        "-tempo-query-url=http://tempo:3200",
-        "-tempo-push-url=http://tempo:4317",
-      ]
-    depends_on:
-      - tempo
+  # vulture:
+  #   image: grafana/tempo-vulture:latest
+  #   restart: always
+  #   command:
+  #     [
+  #       "-prometheus-listen-address=:8080",
+  #       "-tempo-query-url=http://tempo:3200",
+  #       "-tempo-push-url=http://tempo:4317",
+  #     ]
+  #   depends_on:
+  #     - tempo
 
 volumes:
-  tempo-data:
+  # tempo-data:
   grafana-data:
